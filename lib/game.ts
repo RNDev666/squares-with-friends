@@ -79,7 +79,7 @@ export async function loadWordLists(): Promise<{ common: Set<string>; full: Set<
     fetch("/words/full.txt").then((r) => r.text()),
   ]);
   return {
-    common: new Set(c.split("\n").filter(Boolean)),
-    full: new Set(f.split("\n").filter(Boolean)),
+    common: new Set(c.split(/\r?\n/).filter(Boolean)),
+    full: new Set(f.split(/\r?\n/).filter(Boolean)),
   };
 }

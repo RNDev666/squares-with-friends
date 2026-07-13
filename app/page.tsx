@@ -19,7 +19,8 @@ export default function Home() {
       const board = generateBoard(common, full);
       const roomId = await createRoom(board);
       router.push(`/board/${roomId}`);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Couldn't create a board — try again.");
       setBusy(false);
     }
