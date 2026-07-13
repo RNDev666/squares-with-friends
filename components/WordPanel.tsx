@@ -86,7 +86,7 @@ export function WordPanel({
           })}
           <div className="mb-4">
             <div className="text-xs font-semibold uppercase text-amber-600">
-              Bonus · {bonusFinds.length} rare words
+              Bonus · {bonusFinds.length} rare word{bonusFinds.length === 1 ? "" : "s"}
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {bonusFinds.map((f) => (

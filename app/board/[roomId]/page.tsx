@@ -70,6 +70,7 @@ export default function BoardPage() {
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only SSR hydration guard: localStorage is unreadable during SSR, so we sync it once the client mounts.
     setNameState(getName());
     setReady(true);
   }, []);
@@ -117,6 +118,7 @@ export default function BoardPage() {
     );
   }
 
+  // eslint-disable-next-line react-hooks/purity -- presence cutoff intentionally reads wall-clock time each render; staleness within a render is harmless here.
   const online = players.filter((p) => Date.now() - p.lastSeenAt < 45000);
   const done =
     finds.filter((f) => f.isTarget).length === room.targetWords.length;
