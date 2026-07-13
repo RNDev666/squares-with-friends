@@ -31,7 +31,7 @@ export default function Home() {
       <h1 className="text-5xl font-extrabold tracking-tight">
         Squares <span className="text-indigo-600">With Friends</span>
       </h1>
-      <p className="max-w-md text-lg text-neutral-500">
+      <p className="max-w-md text-lg text-neutral-500 dark:text-neutral-400">
         A 4×4 word hunt you solve together. Create a board, share the link, and
         find every word as a team.
       </p>

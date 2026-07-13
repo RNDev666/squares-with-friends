@@ -14,7 +14,7 @@ function Chip({ find }: { find: Find }) {
   return (
     <span
       title={find.name}
-      className="rounded-full border-b-2 bg-white px-2 py-0.5 text-sm font-medium uppercase shadow-sm"
+      className="rounded-full border-b-2 bg-white px-2 py-0.5 text-sm font-medium uppercase text-neutral-800 shadow-sm dark:bg-neutral-800 dark:text-neutral-100"
       style={{ borderColor: find.color }}
     >
       {find.word}
@@ -38,7 +38,9 @@ export function WordPanel({
     <button
       onClick={() => setView(v)}
       className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${
-        view === v ? "bg-indigo-600 text-white" : "bg-neutral-200 text-neutral-600"
+        view === v
+          ? "bg-indigo-600 text-white"
+          : "bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
       }`}
     >
       {label}
@@ -47,11 +49,11 @@ export function WordPanel({
 
   return (
     <div className="w-full max-w-md">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-bold">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="font-bold whitespace-nowrap">
           Words found {targetFinds.size} / {targetWords.length}
         </h2>
-        <div className="flex gap-1">
+        <div className="flex shrink-0 gap-1">
           {tab("order", "By order")}
           {tab("length", "By length")}
         </div>
@@ -64,13 +66,13 @@ export function WordPanel({
             const found = words.filter((w) => targetFinds.has(w));
             return (
               <div key={len} className="mb-4">
-                <div className="flex justify-between text-xs font-semibold uppercase text-neutral-500">
+                <div className="flex justify-between text-xs font-semibold uppercase text-neutral-500 dark:text-neutral-400">
                   <span>{len}-letter</span>
                   <span>
                     {found.length}/{words.length}
                   </span>
                 </div>
-                <div className="mb-2 mt-1 h-1.5 rounded-sm bg-neutral-200">
+                <div className="mb-2 mt-1 h-1.5 rounded-sm bg-neutral-200 dark:bg-neutral-800">
                   <div
                     className="h-full rounded-sm bg-emerald-500 transition-all"
                     style={{ width: `${(found.length / words.length) * 100}%` }}
@@ -85,7 +87,7 @@ export function WordPanel({
             );
           })}
           <div className="mb-4">
-            <div className="text-xs font-semibold uppercase text-amber-600">
+            <div className="text-xs font-semibold uppercase text-amber-600 dark:text-amber-400">
               Bonus · {bonusFinds.length} rare word{bonusFinds.length === 1 ? "" : "s"}
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -106,7 +108,7 @@ export function WordPanel({
                 {!f.isTarget && (
                   <span className="text-xs font-semibold text-amber-500">bonus</span>
                 )}
-                <span className="ml-auto text-xs text-neutral-400">{f.name}</span>
+                <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-500">{f.name}</span>
               </li>
             ))}
         </ul>

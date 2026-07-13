@@ -62,11 +62,11 @@ export function Grid({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="h-8 text-2xl font-bold tracking-widest text-indigo-600">
+      <div className="h-8 text-2xl font-bold tracking-widest text-indigo-600 dark:text-indigo-400">
         {current || " "}
       </div>
       <div
-        className={`grid grid-cols-4 gap-2 rounded-2xl bg-neutral-100 p-3 select-none touch-none ${
+        className={`grid grid-cols-[repeat(4,4rem)] gap-2.5 rounded-2xl bg-neutral-200 p-2.5 select-none touch-none sm:grid-cols-[repeat(4,5rem)] dark:bg-neutral-800 ${
           flash ? FLASH_RING[flash] : ""
         }`}
         onPointerDown={(e) => {
@@ -87,10 +87,10 @@ export function Grid({
           <div
             key={i}
             data-idx={i}
-            className={`flex aspect-square w-16 items-center justify-center rounded-xl text-3xl font-bold uppercase transition-all sm:w-20 ${
+            className={`flex aspect-square items-center justify-center rounded-xl text-3xl font-bold uppercase transition-all ${
               path.includes(i)
                 ? "scale-105 bg-indigo-600 text-white"
-                : "bg-white text-neutral-800 shadow"
+                : "bg-white text-neutral-800 shadow-sm dark:bg-neutral-700 dark:text-neutral-100"
             }`}
           >
             {ch}

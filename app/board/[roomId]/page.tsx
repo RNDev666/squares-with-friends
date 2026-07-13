@@ -11,9 +11,9 @@ import { colorFor, getName, getSessionId, setName } from "@/lib/session";
 function JoinGate({ onJoin }: { onJoin: (name: string) => void }) {
   const [value, setValue] = useState("");
   return (
-    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 dark:bg-black/60">
       <form
-        className="w-80 rounded-2xl bg-white p-6 shadow-xl"
+        className="w-80 rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900"
         onSubmit={(e) => {
           e.preventDefault();
           if (value.trim()) onJoin(value.trim());
@@ -26,7 +26,7 @@ function JoinGate({ onJoin }: { onJoin: (name: string) => void }) {
           onChange={(e) => setValue(e.target.value)}
           maxLength={20}
           placeholder="Your name"
-          className="mb-3 w-full rounded-lg border border-neutral-300 px-3 py-2"
+          className="mb-3 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
         />
         <button className="w-full rounded-lg bg-indigo-600 py-2 font-semibold text-white">
           Play
@@ -146,14 +146,14 @@ export default function BoardPage() {
         <div className="relative">
           <Grid letters={room.letters} flash={flash} onWord={onWord} />
           {toast && (
-            <div className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-neutral-900 px-4 py-1.5 text-sm font-semibold text-white">
+            <div className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-neutral-900 px-4 py-1.5 text-sm font-semibold whitespace-nowrap text-white dark:bg-white dark:text-neutral-900">
               {toast}
             </div>
           )}
         </div>
 
         {done && (
-          <div className="rounded-xl bg-emerald-100 px-4 py-2 text-center font-semibold text-emerald-800">
+          <div className="rounded-xl bg-emerald-100 px-4 py-2 text-center font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
             🎉 All {room.targetWords.length} words found! Bonus hunting continues.
           </div>
         )}
