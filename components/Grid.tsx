@@ -44,6 +44,27 @@ const KEY_STEP: Record<string, number | undefined> = {
   ArrowDown: -0.5,
 };
 
+const pointsOf = (cells: number[]) =>
+  cells
+    .map((i) => {
+      const { x, y } = centerOf(i);
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+// Same, but stopping short of the last tile's center so the arrowhead points at
+// that letter instead of sitting on top of it.
+const hintPointsOf = (cells: number[]) => {
+  const pts = cells.map(centerOf);
+  const a = pts[pts.length - 2];
+  const b = pts[pts.length - 1];
+  pts[pts.length - 1] = {
+    x: b.x - (b.x - a.x) * 0.4,
+    y: b.y - (b.y - a.y) * 0.4,
+  };
+  return pts.map((p) => `${p.x},${p.y}`).join(" ");
+};
+
 const adjacent = (a: number, b: number) => {
   const dr = Math.abs(Math.floor(a / 4) - Math.floor(b / 4));
   const dc = Math.abs((a % 4) - (b % 4));
@@ -54,10 +75,16 @@ export function Grid({
   letters,
   flash,
   onWord,
+  hint,
+  counts,
+  useful,
 }: {
   letters: string[];
   flash: Flash;
   onWord: (word: string) => void;
+  hint: number[] | null;
+  counts: number[] | null;
+  useful: boolean[];
 }) {
   const [path, setPath] = useState<number[]>([]);
   const [cell, setCell] = useState(CELL_DEFAULT);
@@ -147,34 +174,66 @@ export function Grid({
               style={{ fontSize: "calc(var(--cell) * 0.42)" }}
               // `transition` (not `transition-all`) so font-size snaps with the
               // tile during a resize drag instead of lagging behind it.
-              className={`flex aspect-square items-center justify-center rounded-xl font-bold uppercase transition ${
+              className={`relative flex aspect-square items-center justify-center rounded-xl font-bold uppercase transition ${
                 path.includes(i)
                   ? "scale-105 bg-indigo-600 text-white"
-                  : "bg-white text-neutral-800 shadow-sm dark:bg-neutral-700 dark:text-neutral-100"
+                  : useful[i]
+                    ? "bg-white text-neutral-800 shadow-sm dark:bg-neutral-700 dark:text-neutral-100"
+                    : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600"
               }`}
             >
               {ch}
+              {!!counts?.[i] && (
+                <span
+                  title={`${counts[i]} words left start here`}
+                  style={{ fontSize: "calc(var(--cell) * 0.18)" }}
+                  className="absolute top-0.5 right-1 font-semibold text-amber-600 dark:text-amber-400"
+                >
+                  {counts[i]}
+                </span>
+              )}
             </div>
           ))}
-          {path.length > 1 && (
+          {(path.length > 1 || hint) && (
             <svg
               viewBox={`0 0 ${SPAN} ${SPAN}`}
               aria-hidden
-              className="pointer-events-none absolute inset-0 h-full w-full text-indigo-500/45 dark:text-indigo-400/45"
+              className="pointer-events-none absolute inset-0 h-full w-full"
             >
-              <polyline
-                points={path
-                  .map((i) => {
-                    const { x, y } = centerOf(i);
-                    return `${x},${y}`;
-                  })
-                  .join(" ")}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={TILE * 0.22}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <defs>
+                <marker
+                  id="hint-arrow"
+                  viewBox="0 0 10 10"
+                  refX="7"
+                  refY="5"
+                  markerWidth="4"
+                  markerHeight="4"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M0,0 L10,5 L0,10 z" className="fill-amber-500" />
+                </marker>
+              </defs>
+              {hint && (
+                <polyline
+                  points={hintPointsOf(hint)}
+                  fill="none"
+                  markerEnd="url(#hint-arrow)"
+                  className="stroke-amber-500/90"
+                  strokeWidth={TILE * 0.12}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+              {path.length > 1 && (
+                <polyline
+                  points={pointsOf(path)}
+                  fill="none"
+                  className="stroke-indigo-500/45 dark:stroke-indigo-400/45"
+                  strokeWidth={TILE * 0.22}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
             </svg>
           )}
         </div>

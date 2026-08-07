@@ -78,6 +78,38 @@ export function generateBoard(dictionary: Set<string>): Board {
   throw new Error("Could not generate a board with a good word count");
 }
 
+// Every board path that spells `word`.
+export function allPaths(letters: string[], word: string): number[][] {
+  const out: number[][] = [];
+  const path: number[] = [];
+  const dfs = (i: number, d: number) => {
+    if (letters[i] !== word[d]) return;
+    path.push(i);
+    if (d === word.length - 1) out.push([...path]);
+    else for (const n of NEIGHBORS[i]) if (!path.includes(n)) dfs(n, d + 1);
+    path.pop();
+  };
+  for (let i = 0; i < 16; i++) dfs(i, 0);
+  return out;
+}
+
+// Per cell: how many of `words` can start there, and whether the cell appears
+// anywhere in any of them. A word spellable from two identical letters counts
+// once for each of those starting cells.
+export function analyzeCells(letters: string[], words: string[]) {
+  const counts = new Array<number>(16).fill(0);
+  const useful = new Array<boolean>(16).fill(false);
+  for (const w of words) {
+    const starts = new Set<number>();
+    for (const p of allPaths(letters, w)) {
+      starts.add(p[0]);
+      for (const i of p) useful[i] = true;
+    }
+    for (const s of starts) counts[s]++;
+  }
+  return { counts, useful };
+}
+
 // The ENABLE Scrabble lexicon — see scripts/fetch-words.mjs.
 export async function loadDictionary(): Promise<Set<string>> {
   const text = await fetch("/words.txt").then((r) => r.text());
