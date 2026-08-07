@@ -61,10 +61,10 @@ function rollLetters(): string[] {
 export type Board = { letters: string[]; words: string[] };
 
 // Boards outside this range are re-rolled: too few words is a dull hunt, too
-// many never gets finished. The median board has 27 words, so ~58% of rolls
-// land inside and the 200 attempts below are ample.
-const MIN_WORDS = 15;
-const MAX_WORDS = 45;
+// many never gets finished. Against the full lexicon the median board has 53
+// words, so ~62% of rolls land inside and the 200 attempts below are ample.
+const MIN_WORDS = 30;
+const MAX_WORDS = 90;
 
 export function generateBoard(dictionary: Set<string>): Board {
   const trie = buildTrie(dictionary);
@@ -78,8 +78,7 @@ export function generateBoard(dictionary: Set<string>): Board {
   throw new Error("Could not generate a board with a good word count");
 }
 
-// Words people actually recognise — see scripts/fetch-words.mjs for how the
-// list is built and why it stops where it does.
+// The ENABLE Scrabble lexicon — see scripts/fetch-words.mjs.
 export async function loadDictionary(): Promise<Set<string>> {
   const text = await fetch("/words.txt").then((r) => r.text());
   return new Set(text.split(/\r?\n/).filter(Boolean));
