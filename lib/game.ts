@@ -61,9 +61,10 @@ function rollLetters(): string[] {
 export type Board = { letters: string[]; words: string[] };
 
 // Boards outside this range are re-rolled: too few words is a dull hunt, too
-// many never gets finished. Random rolls land inside it about 60% of the time.
-const MIN_WORDS = 30;
-const MAX_WORDS = 90;
+// many never gets finished. Random rolls land inside it about 38% of the time,
+// so the 200 attempts below are ample.
+const MIN_WORDS = 15;
+const MAX_WORDS = 45;
 
 export function generateBoard(dictionary: Set<string>): Board {
   const trie = buildTrie(dictionary);
@@ -77,7 +78,9 @@ export function generateBoard(dictionary: Set<string>): Board {
   throw new Error("Could not generate a board with a good word count");
 }
 
+// Familiar words only. The full ENABLE dictionary solves to boards full of
+// words nobody knows (elhi, okeh, hisn), which makes for a worse hunt.
 export async function loadDictionary(): Promise<Set<string>> {
-  const text = await fetch("/words/full.txt").then((r) => r.text());
+  const text = await fetch("/words/common.txt").then((r) => r.text());
   return new Set(text.split(/\r?\n/).filter(Boolean));
 }
