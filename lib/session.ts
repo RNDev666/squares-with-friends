@@ -23,8 +23,8 @@ export function setName(name: string) {
 
 // Tile edge length in rem; clamped to the slider's range on read.
 export const CELL_MIN = 3;
-export const CELL_MAX = 7;
-export const CELL_DEFAULT = 4.5;
+export const CELL_MAX = 12;
+export const CELL_DEFAULT = 7;
 
 export function getCellSize(): number {
   const v = Number(localStorage.getItem("sq_cell"));
