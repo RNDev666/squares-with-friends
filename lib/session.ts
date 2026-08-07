@@ -21,6 +21,20 @@ export function setName(name: string) {
   localStorage.setItem("sq_name", name);
 }
 
+// Tile edge length in rem; clamped to the slider's range on read.
+export const CELL_MIN = 3;
+export const CELL_MAX = 7;
+export const CELL_DEFAULT = 4.5;
+
+export function getCellSize(): number {
+  const v = Number(localStorage.getItem("sq_cell"));
+  return v >= CELL_MIN && v <= CELL_MAX ? v : CELL_DEFAULT;
+}
+
+export function setCellSize(rem: number) {
+  localStorage.setItem("sq_cell", String(rem));
+}
+
 // ponytail: hash-picked color, collisions possible — names disambiguate
 export function colorFor(sessionId: string): string {
   let h = 0;
