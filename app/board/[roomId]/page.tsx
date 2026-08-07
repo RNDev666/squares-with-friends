@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Grid, Flash } from "@/components/Grid";
 import { WordPanel } from "@/components/WordPanel";
+import { Scoreboard } from "@/components/Scoreboard";
 import { colorFor, getName, getSessionId, setName } from "@/lib/session";
 import { allPaths, analyzeCells } from "@/lib/game";
 
@@ -124,8 +125,6 @@ export default function BoardPage() {
     );
   }
 
-  // eslint-disable-next-line react-hooks/purity -- presence cutoff intentionally reads wall-clock time each render; staleness within a render is harmless here.
-  const online = players.filter((p) => Date.now() - p.lastSeenAt < 45000);
   const done = finds.length === room.words.length;
 
   const found = new Set(finds.map((f) => f.word));
@@ -147,18 +146,7 @@ export default function BoardPage() {
       {!name && <JoinGate onJoin={(n) => { setName(n); setNameState(n); }} />}
 
       <div className="flex flex-col items-center gap-4">
-        <div className="flex w-full items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {online.map((p) => (
-              <span
-                key={p._id}
-                className="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-                style={{ background: p.color }}
-              >
-                {p.name}
-              </span>
-            ))}
-          </div>
+        <div className="flex w-full items-center justify-end gap-4">
           <div className="flex shrink-0 gap-2">
             <button
               onClick={showHint}
@@ -194,7 +182,10 @@ export default function BoardPage() {
         )}
       </div>
 
-      <WordPanel words={room.words} finds={finds} />
+      <div className="flex w-full max-w-md flex-col gap-6">
+        <Scoreboard players={players} finds={finds} />
+        <WordPanel words={room.words} finds={finds} />
+      </div>
     </main>
   );
 }

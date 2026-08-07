@@ -43,7 +43,7 @@ export const list = query({
         cache.set(f.playerId, { name: p?.name ?? "?", color: p?.color ?? "#888" });
       }
       const { name, color } = cache.get(f.playerId)!;
-      out.push({ word: f.word, foundAt: f._creationTime, name, color });
+      out.push({ word: f.word, foundAt: f._creationTime, playerId: f.playerId, name, color });
     }
     return out;
   },

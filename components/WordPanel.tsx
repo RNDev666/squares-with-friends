@@ -5,6 +5,7 @@ import { useState } from "react";
 export type Find = {
   word: string;
   foundAt: number;
+  playerId: string;
   name: string;
   color: string;
 };
