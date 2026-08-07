@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -7,6 +7,11 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Grid, Flash } from "@/components/Grid";
 import { WordPanel } from "@/components/WordPanel";
 import { colorFor, getName, getSessionId, setName } from "@/lib/session";
+import { allPaths, analyzeCells } from "@/lib/game";
+
+// Below this share of the board found, per-tile counts would give away too much.
+const COUNTS_AT = 0.4;
+const HINT_MS = 4000;
 
 function JoinGate({ onJoin }: { onJoin: (name: string) => void }) {
   const [value, setValue] = useState("");
@@ -68,6 +73,8 @@ export default function BoardPage() {
   const [playerId, setPlayerId] = useState<Id<"players"> | null>(null);
   const [flash, setFlash] = useState<Flash>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [hint, setHint] = useState<number[] | null>(null);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only SSR hydration guard: localStorage is unreadable during SSR, so we sync it once the client mounts.
@@ -121,6 +128,20 @@ export default function BoardPage() {
   const online = players.filter((p) => Date.now() - p.lastSeenAt < 45000);
   const done = finds.length === room.words.length;
 
+  const found = new Set(finds.map((f) => f.word));
+  const remaining = room.words.filter((w) => !found.has(w));
+  // ponytail: re-solved every render — 16 starts x ~60 words is microseconds
+  const { counts, useful } = analyzeCells(room.letters, remaining);
+  const showCounts = found.size >= room.words.length * COUNTS_AT;
+
+  const showHint = () => {
+    const word = remaining[Math.floor(Math.random() * remaining.length)];
+    if (!word) return;
+    clearTimeout(hintTimer.current);
+    setHint(allPaths(room.letters, word)[0].slice(0, 3));
+    hintTimer.current = setTimeout(() => setHint(null), HINT_MS);
+  };
+
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col items-center gap-6 p-4 md:flex-row md:items-start md:justify-center md:pt-12">
       {!name && <JoinGate onJoin={(n) => { setName(n); setNameState(n); }} />}
@@ -138,11 +159,27 @@ export default function BoardPage() {
               </span>
             ))}
           </div>
-          <ShareButton />
+          <div className="flex shrink-0 gap-2">
+            <button
+              onClick={showHint}
+              disabled={!remaining.length}
+              className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-40"
+            >
+              Hint
+            </button>
+            <ShareButton />
+          </div>
         </div>
 
         <div className="relative">
-          <Grid letters={room.letters} flash={flash} onWord={onWord} />
+          <Grid
+            letters={room.letters}
+            flash={flash}
+            onWord={onWord}
+            hint={hint}
+            counts={showCounts ? counts : null}
+            useful={useful}
+          />
           {toast && (
             <div className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-neutral-900 px-4 py-1.5 text-sm font-semibold whitespace-nowrap text-white dark:bg-white dark:text-neutral-900">
               {toast}
