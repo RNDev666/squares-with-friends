@@ -1,29 +1,36 @@
-// scripts/fetch-words.mjs — one-off: builds the game's word list into public/words/
-// Familiar words (google-10000) filtered to real spellings (ENABLE). Swap the
-// intersection below for `enable` alone to play with the full dictionary.
-import { writeFileSync, mkdirSync } from "node:fs";
+// scripts/fetch-words.mjs — one-off: builds the game's word list into public/words.txt
+//
+// The list is the intersection of two sources:
+//   ENABLE      — real spellings, but includes dictionary junk (elhi, okeh, hisn)
+//   count_1w    — 333k words ranked by frequency, but includes misspellings
+// Taking frequency-ranked words that ENABLE also knows gives real words people
+// actually recognise. RANK_CUTOFF is where to stop down that ranking.
+//
+// 30k was chosen by probing: every ordinary word tested (moth, toes, twig,
+// broom, otter...) is in, no junk is, and boards land at a median of 27 words.
+// Below ~20k ordinary words start falling out; past ~40k junk starts leaking in
+// (mibs, fino, vara) and past 70k so does outright noise (okeh, hent, sware).
+const RANK_CUTOFF = 30000;
+
+import { writeFileSync } from "node:fs";
 
 const get = async (url) => (await fetch(url)).text();
 const ok = (w) => /^[a-z]{4,16}$/.test(w);
 
-const enable = (
-  await get("https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt")
-)
+const [enableRaw, frequencyRaw] = await Promise.all([
+  get("https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt"),
+  get("https://norvig.com/ngrams/count_1w.txt"),
+]);
+
+const spellings = new Set(
+  enableRaw.split(/\r?\n/).map((w) => w.trim().toLowerCase()).filter(ok)
+);
+
+const words = frequencyRaw
   .split(/\r?\n/)
-  .map((w) => w.trim().toLowerCase())
-  .filter(ok);
+  .map((line) => line.split("\t")[0])
+  .filter((w) => w && ok(w) && spellings.has(w))
+  .slice(0, RANK_CUTOFF);
 
-const spellings = new Set(enable);
-
-const common = (
-  await get(
-    "https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english-no-swears.txt"
-  )
-)
-  .split(/\r?\n/)
-  .map((w) => w.trim().toLowerCase())
-  .filter((w) => ok(w) && spellings.has(w));
-
-mkdirSync("public/words", { recursive: true });
-writeFileSync("public/words/common.txt", common.join("\n"));
-console.log(`common: ${common.length} words`);
+writeFileSync("public/words.txt", words.join("\n"));
+console.log(`${words.length} words (top ${RANK_CUTOFF} by frequency, ∩ ENABLE)`);
