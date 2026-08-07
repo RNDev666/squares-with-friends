@@ -18,8 +18,23 @@ const FLASH_RING: Record<Exclude<Flash, null>, string> = {
   duplicate: "animate-shake",
 };
 
-// One rem of cell size grows the board by 4rem, so px drag → rem is /(4*16).
-const PX_PER_REM_OF_CELL = 64;
+// Board geometry in viewBox units. Gaps and padding are a fixed fraction of a
+// tile, so the whole board scales uniformly and the trace overlay can use one
+// fixed viewBox at any size — no measuring the DOM.
+const TILE = 100;
+const GUTTER = 15; // both the gap between tiles and the board's own padding
+const SPAN = 4 * TILE + 5 * GUTTER; // 4 tiles + 3 gaps + 2 edges
+const GUTTER_RATIO = GUTTER / TILE;
+const BOARD_TILES = SPAN / TILE; // board width measured in tiles
+
+const centerOf = (i: number) => ({
+  x: GUTTER + (i % 4) * (TILE + GUTTER) + TILE / 2,
+  y: GUTTER + Math.floor(i / 4) * (TILE + GUTTER) + TILE / 2,
+});
+
+// Dragging the corner by n px widens the board by n px, and the board is
+// BOARD_TILES tiles wide, so the tile grows n / (BOARD_TILES * 16) rem.
+const PX_PER_REM_OF_CELL = BOARD_TILES * 16;
 const clampCell = (rem: number) =>
   Math.min(CELL_MAX, Math.max(CELL_MIN, Math.round(rem * 10) / 10));
 
@@ -100,14 +115,18 @@ export function Grid({
         // Shrink below the preferred size rather than overflow a narrow screen.
         style={
           {
-            "--cell": `min(${cell}rem, calc((100vw - 5rem) / 4))`,
+            "--cell": `min(${cell}rem, calc((100vw - 2.5rem) / ${BOARD_TILES}))`,
           } as React.CSSProperties
         }
       >
         <div
-          className={`grid grid-cols-[repeat(4,var(--cell))] gap-2.5 rounded-2xl bg-neutral-200 p-2.5 select-none touch-none dark:bg-neutral-800 ${
+          className={`relative grid grid-cols-[repeat(4,var(--cell))] rounded-2xl bg-neutral-200 select-none touch-none dark:bg-neutral-800 ${
             flash ? FLASH_RING[flash] : ""
           }`}
+          style={{
+            gap: `calc(var(--cell) * ${GUTTER_RATIO})`,
+            padding: `calc(var(--cell) * ${GUTTER_RATIO})`,
+          }}
           onPointerDown={(e) => {
             tracing.current = true;
             e.currentTarget.setPointerCapture(e.pointerId);
@@ -138,6 +157,27 @@ export function Grid({
               {ch}
             </div>
           ))}
+          {path.length > 1 && (
+            <svg
+              viewBox={`0 0 ${SPAN} ${SPAN}`}
+              aria-hidden
+              className="pointer-events-none absolute inset-0 h-full w-full text-indigo-500/45 dark:text-indigo-400/45"
+            >
+              <polyline
+                points={path
+                  .map((i) => {
+                    const { x, y } = centerOf(i);
+                    return `${x},${y}`;
+                  })
+                  .join(" ")}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={TILE * 0.22}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
         </div>
         <button
           type="button"
