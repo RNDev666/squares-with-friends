@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { generateBoard, loadWordLists } from "@/lib/game";
+import { generateBoard, loadDictionary } from "@/lib/game";
 
 export default function Home() {
   const router = useRouter();
@@ -15,8 +15,7 @@ export default function Home() {
     setBusy(true);
     setError(null);
     try {
-      const { common, full } = await loadWordLists();
-      const board = generateBoard(common, full);
+      const board = generateBoard(await loadDictionary());
       const roomId = await createRoom(board);
       router.push(`/board/${roomId}`);
     } catch (err) {

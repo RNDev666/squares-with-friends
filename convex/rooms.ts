@@ -4,8 +4,7 @@ import { v } from "convex/values";
 export const create = mutation({
   args: {
     letters: v.array(v.string()),
-    targetWords: v.array(v.string()),
-    bonusWords: v.array(v.string()),
+    words: v.array(v.string()),
   },
   handler: async (ctx, args) => {
     if (args.letters.length !== 16) throw new Error("Board must have 16 letters");

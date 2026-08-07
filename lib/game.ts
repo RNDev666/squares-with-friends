@@ -58,28 +58,26 @@ function rollLetters(): string[] {
   return dice.map((d) => d[Math.floor(Math.random() * 6)].toLowerCase());
 }
 
-export type Board = { letters: string[]; targetWords: string[]; bonusWords: string[] };
+export type Board = { letters: string[]; words: string[] };
 
-export function generateBoard(common: Set<string>, full: Set<string>): Board {
-  const trie = buildTrie(full);
+// Boards outside this range are re-rolled: too few words is a dull hunt, too
+// many never gets finished. Random rolls land inside it about 60% of the time.
+const MIN_WORDS = 30;
+const MAX_WORDS = 90;
+
+export function generateBoard(dictionary: Set<string>): Board {
+  const trie = buildTrie(dictionary);
   for (let attempt = 0; attempt < 200; attempt++) {
     const letters = rollLetters();
-    const words = [...solve(letters, trie)];
-    const targetWords = words.filter((w) => common.has(w)).sort();
-    if (targetWords.length >= 15 && targetWords.length <= 45) {
-      return { letters, targetWords, bonusWords: words.filter((w) => !common.has(w)).sort() };
+    const words = [...solve(letters, trie)].sort();
+    if (words.length >= MIN_WORDS && words.length <= MAX_WORDS) {
+      return { letters, words };
     }
   }
   throw new Error("Could not generate a board with a good word count");
 }
 
-export async function loadWordLists(): Promise<{ common: Set<string>; full: Set<string> }> {
-  const [c, f] = await Promise.all([
-    fetch("/words/common.txt").then((r) => r.text()),
-    fetch("/words/full.txt").then((r) => r.text()),
-  ]);
-  return {
-    common: new Set(c.split(/\r?\n/).filter(Boolean)),
-    full: new Set(f.split(/\r?\n/).filter(Boolean)),
-  };
+export async function loadDictionary(): Promise<Set<string>> {
+  const text = await fetch("/words/full.txt").then((r) => r.text());
+  return new Set(text.split(/\r?\n/).filter(Boolean));
 }

@@ -101,8 +101,7 @@ export default function BoardPage() {
   const onWord = async (word: string) => {
     if (!playerId || !room) return;
     const res = await submit({ roomId: room._id, playerId, word });
-    if (res.result === "target") ping("target", `${word.toUpperCase()} ✓`);
-    else if (res.result === "bonus") ping("bonus", `${word.toUpperCase()} — bonus!`);
+    if (res.result === "found") ping("found", `${word.toUpperCase()} ✓`);
     else if (res.result === "duplicate") ping("duplicate", `Already found by ${res.by}`);
     else ping("invalid", "Not a word");
   };
@@ -120,8 +119,7 @@ export default function BoardPage() {
 
   // eslint-disable-next-line react-hooks/purity -- presence cutoff intentionally reads wall-clock time each render; staleness within a render is harmless here.
   const online = players.filter((p) => Date.now() - p.lastSeenAt < 45000);
-  const done =
-    finds.filter((f) => f.isTarget).length === room.targetWords.length;
+  const done = finds.length === room.words.length;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col items-center gap-6 p-4 md:flex-row md:items-start md:justify-center md:pt-12">
@@ -154,12 +152,12 @@ export default function BoardPage() {
 
         {done && (
           <div className="rounded-xl bg-emerald-100 px-4 py-2 text-center font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-            🎉 All {room.targetWords.length} words found! Bonus hunting continues.
+            🎉 All {room.words.length} words found!
           </div>
         )}
       </div>
 
-      <WordPanel targetWords={room.targetWords} finds={finds} />
+      <WordPanel words={room.words} finds={finds} />
     </main>
   );
 }

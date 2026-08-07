@@ -9,11 +9,10 @@ import {
   setCellSize,
 } from "@/lib/session";
 
-export type Flash = "target" | "bonus" | "invalid" | "duplicate" | null;
+export type Flash = "found" | "invalid" | "duplicate" | null;
 
 const FLASH_RING: Record<Exclude<Flash, null>, string> = {
-  target: "ring-4 ring-emerald-400",
-  bonus: "ring-4 ring-amber-400",
+  found: "ring-4 ring-emerald-400",
   invalid: "animate-shake",
   duplicate: "animate-shake",
 };

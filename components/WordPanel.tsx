@@ -4,7 +4,6 @@ import { useState } from "react";
 
 export type Find = {
   word: string;
-  isTarget: boolean;
   foundAt: number;
   name: string;
   color: string;
@@ -22,17 +21,10 @@ function Chip({ find }: { find: Find }) {
   );
 }
 
-export function WordPanel({
-  targetWords,
-  finds,
-}: {
-  targetWords: string[];
-  finds: Find[];
-}) {
+export function WordPanel({ words, finds }: { words: string[]; finds: Find[] }) {
   const [view, setView] = useState<"order" | "length">("length");
-  const targetFinds = new Map(finds.filter((f) => f.isTarget).map((f) => [f.word, f]));
-  const bonusFinds = finds.filter((f) => !f.isTarget);
-  const lengths = [...new Set(targetWords.map((w) => w.length))].sort((a, b) => a - b);
+  const found = new Map(finds.map((f) => [f.word, f]));
+  const lengths = [...new Set(words.map((w) => w.length))].sort((a, b) => a - b);
 
   const tab = (v: "order" | "length", label: string) => (
     <button
@@ -51,7 +43,7 @@ export function WordPanel({
     <div className="w-full max-w-md">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-bold whitespace-nowrap">
-          Words found {targetFinds.size} / {targetWords.length}
+          Words found {found.size} / {words.length}
         </h2>
         <div className="flex shrink-0 gap-1">
           {tab("order", "By order")}
@@ -62,40 +54,30 @@ export function WordPanel({
       {view === "length" ? (
         <div>
           {lengths.map((len) => {
-            const words = targetWords.filter((w) => w.length === len);
-            const found = words.filter((w) => targetFinds.has(w));
+            const ofLength = words.filter((w) => w.length === len);
+            const foundOfLength = ofLength.filter((w) => found.has(w));
             return (
               <div key={len} className="mb-4">
                 <div className="flex justify-between text-xs font-semibold uppercase text-neutral-500 dark:text-neutral-400">
                   <span>{len}-letter</span>
                   <span>
-                    {found.length}/{words.length}
+                    {foundOfLength.length}/{ofLength.length}
                   </span>
                 </div>
                 <div className="mb-2 mt-1 h-1.5 rounded-sm bg-neutral-200 dark:bg-neutral-800">
                   <div
                     className="h-full rounded-sm bg-emerald-500 transition-all"
-                    style={{ width: `${(found.length / words.length) * 100}%` }}
+                    style={{ width: `${(foundOfLength.length / ofLength.length) * 100}%` }}
                   />
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {found.map((w) => (
-                    <Chip key={w} find={targetFinds.get(w)!} />
+                  {foundOfLength.map((w) => (
+                    <Chip key={w} find={found.get(w)!} />
                   ))}
                 </div>
               </div>
             );
           })}
-          <div className="mb-4">
-            <div className="text-xs font-semibold uppercase text-amber-600 dark:text-amber-400">
-              Bonus · {bonusFinds.length} rare word{bonusFinds.length === 1 ? "" : "s"}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {bonusFinds.map((f) => (
-                <Chip key={f.word} find={f} />
-              ))}
-            </div>
-          </div>
         </div>
       ) : (
         <ul className="space-y-1.5">
@@ -105,9 +87,6 @@ export function WordPanel({
               <li key={f.word} className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full" style={{ background: f.color }} />
                 <span className="font-medium uppercase">{f.word}</span>
-                {!f.isTarget && (
-                  <span className="text-xs font-semibold text-amber-500">bonus</span>
-                )}
                 <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-500">{f.name}</span>
               </li>
             ))}

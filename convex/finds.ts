@@ -12,10 +12,7 @@ export const submit = mutation({
     const room = await ctx.db.get(args.roomId);
     if (!room) throw new Error("Room not found");
 
-    const isTarget = room.targetWords.includes(word);
-    if (!isTarget && !room.bonusWords.includes(word)) {
-      return { result: "invalid" as const };
-    }
+    if (!room.words.includes(word)) return { result: "invalid" as const };
 
     const dupe = await ctx.db
       .query("finds")
@@ -26,13 +23,8 @@ export const submit = mutation({
       return { result: "duplicate" as const, by: finder?.name ?? "someone" };
     }
 
-    await ctx.db.insert("finds", {
-      roomId: args.roomId,
-      playerId: args.playerId,
-      word,
-      isTarget,
-    });
-    return { result: isTarget ? ("target" as const) : ("bonus" as const) };
+    await ctx.db.insert("finds", { roomId: args.roomId, playerId: args.playerId, word });
+    return { result: "found" as const };
   },
 });
 
@@ -51,7 +43,7 @@ export const list = query({
         cache.set(f.playerId, { name: p?.name ?? "?", color: p?.color ?? "#888" });
       }
       const { name, color } = cache.get(f.playerId)!;
-      out.push({ word: f.word, isTarget: f.isTarget, foundAt: f._creationTime, name, color });
+      out.push({ word: f.word, foundAt: f._creationTime, name, color });
     }
     return out;
   },
