@@ -7,7 +7,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Grid, Flash } from "@/components/Grid";
 import { WordPanel } from "@/components/WordPanel";
 import { Scoreboard } from "@/components/Scoreboard";
-import { colorFor, getName, getSessionId, setName } from "@/lib/session";
+import { getName, getSessionId, setName } from "@/lib/session";
 import { allPaths, analyzeCells } from "@/lib/game";
 
 // Below this share of the board found, per-tile counts would give away too much.
@@ -86,9 +86,7 @@ export default function BoardPage() {
   useEffect(() => {
     if (!name || !room) return;
     const sessionId = getSessionId();
-    join({ roomId: room._id, sessionId, name, color: colorFor(sessionId) }).then(
-      setPlayerId
-    );
+    join({ roomId: room._id, sessionId, name }).then(setPlayerId);
   }, [name, room, join]);
 
   useEffect(() => {

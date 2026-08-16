@@ -1,12 +1,12 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { PALETTE, colorFor } from "../lib/session";
 
 export const join = mutation({
   args: {
     roomId: v.id("rooms"),
     sessionId: v.string(),
     name: v.string(),
-    color: v.string(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -19,7 +19,16 @@ export const join = mutation({
       await ctx.db.patch(existing._id, { name: args.name, lastSeenAt: Date.now() });
       return existing._id;
     }
-    return await ctx.db.insert("players", { ...args, lastSeenAt: Date.now() });
+
+    const roommates = await ctx.db
+      .query("players")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .collect();
+    const taken = new Set(roommates.map((p) => p.color));
+    const color =
+      PALETTE.find((c) => !taken.has(c)) ?? colorFor(args.sessionId);
+
+    return await ctx.db.insert("players", { ...args, color, lastSeenAt: Date.now() });
   },
 });
 
