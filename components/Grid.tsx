@@ -8,6 +8,7 @@ import {
   getCellSize,
   setCellSize,
 } from "@/lib/session";
+import { play } from "@/lib/sfx";
 
 export type Flash = "found" | "invalid" | "duplicate" | null;
 
@@ -99,6 +100,12 @@ export function Grid({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only SSR hydration guard: localStorage is unreadable during SSR, so we sync it once the client mounts.
     setCell(getCellSize());
   }, []);
+
+  // Click per letter, pitched by chain depth. Keyed off the path rather than the
+  // pointer handler so a rejected extend (non-adjacent, reused tile) stays silent.
+  useEffect(() => {
+    if (path.length) play("tick", path.length - 1);
+  }, [path]);
 
   // Dead zone between cells so diagonal swipes don't clip neighbors.
   const cellAt = (x: number, y: number): number | null => {

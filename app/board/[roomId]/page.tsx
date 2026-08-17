@@ -7,7 +7,9 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Grid, Flash } from "@/components/Grid";
 import { WordPanel } from "@/components/WordPanel";
 import { Scoreboard } from "@/components/Scoreboard";
+import { SoundToggle } from "@/components/SoundToggle";
 import { getName, getSessionId, setName } from "@/lib/session";
+import { play } from "@/lib/sfx";
 import { allPaths, analyzeCells } from "@/lib/game";
 
 // Below this share of the board found, per-tile counts would give away too much.
@@ -63,7 +65,8 @@ export default function BoardPage() {
   const roomId = params.roomId as Id<"rooms">;
 
   const room = useQuery(api.rooms.get, { roomId });
-  const finds = useQuery(api.finds.list, { roomId }) ?? [];
+  const loadedFinds = useQuery(api.finds.list, { roomId });
+  const finds = loadedFinds ?? [];
   const players = useQuery(api.players.list, { roomId }) ?? [];
   const join = useMutation(api.players.join);
   const heartbeat = useMutation(api.players.heartbeat);
@@ -95,7 +98,18 @@ export default function BoardPage() {
     return () => clearInterval(t);
   }, [playerId, heartbeat]);
 
+  // Fanfare when the last word lands, whoever found it. The ref starts null so
+  // that joining an already-finished board is silent — only a flip to done rings.
+  const wasDone = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (!loadedFinds || !room) return;
+    const isDone = loadedFinds.length === room.words.length;
+    if (isDone && wasDone.current === false) play("win");
+    wasDone.current = isDone;
+  }, [loadedFinds, room]);
+
   const ping = (f: Flash, msg: string) => {
+    play(f === "found" ? "correct" : "cancel");
     setFlash(f);
     setToast(msg);
     setTimeout(() => {
@@ -145,6 +159,7 @@ export default function BoardPage() {
 
       <div className="flex flex-col items-center gap-4">
         <div className="flex w-full items-center justify-end gap-4">
+          <SoundToggle />
           <div className="flex shrink-0 gap-2">
             <button
               onClick={showHint}
